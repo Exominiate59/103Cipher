@@ -1,0 +1,164 @@
+#!/usr/bin/env -S java --source 11
+
+import java.util.Arrays;
+
+class SmallestMatrix {
+
+    // Crée une matrice carrée à partir d'une chaîne de caractères
+    public static int[][] createMatrix(String str) {
+        int[] asciiValues = str.chars().toArray();
+        int size = (int) Math.ceil(Math.sqrt(asciiValues.length));
+        int[][] matrix = new int[size][size];
+        int index = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (index < asciiValues.length) {
+                    matrix[i][j] = asciiValues[index++];
+                } else {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        return matrix;
+    }
+
+    // Affiche une matrice
+    public static void printMatrix(int[][] matrix) {
+        for (int[] row : matrix) {
+            for (int value : row) {
+                System.out.print(value + "\t");
+            }
+            System.out.println();
+        }
+    }
+
+    // Effectue la multiplication matricielle
+    // Surcharge pour multiplier int[][] avec double[][]
+    public static double[][] multiplyMatrices(int[][] a, double[][] b) {
+        int rows = a.length;
+        int cols = b[0].length;
+        int common = a[0].length;
+
+        double[][] result = new double[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                for (int k = 0; k < common; k++) {
+                    result[i][j] += a[i][k] * b[k][j];
+                }
+            }
+        }
+        return result;
+    }
+
+
+    // Inverse une matrice 2x2
+    public static double[][] invertMatrix2x2(int[][] matrix) {
+        double determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+        if (determinant == 0) {
+            throw new IllegalArgumentException("Matrix is not invertible.");
+        }
+
+        double[][] inverse = new double[2][2];
+        inverse[0][0] = matrix[1][1] / determinant;
+        inverse[0][1] = -matrix[0][1] / determinant;
+        inverse[1][0] = -matrix[1][0] / determinant;
+        inverse[1][1] = matrix[0][0] / determinant;
+
+        return inverse;
+    }
+
+    // Convertit une matrice ASCII en chaîne de caractères
+    public static String matrixToAscii(int[][] matrix) {
+        StringBuilder result = new StringBuilder();
+        for (int[] row : matrix) {
+            for (int value : row) {
+                if (value > 0) { // Ignore les zéros
+                    result.append((char) value);
+                }
+            }
+        }
+        return result.toString();
+    }
+
+    // Convertit une matrice décimale en une matrice d'entiers
+    public static int[][] decimalToIntegerMatrix(double[][] matrix) {
+        int[][] intMatrix = new int[matrix.length][matrix[0].length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                intMatrix[i][j] = (int) Math.round(matrix[i][j]);
+            }
+        }
+        return intMatrix;
+    }
+
+    // Affiche le message d'aide
+    public static void printHelp() {
+        System.out.println("USAGE");
+        System.out.println("\t./103cipher message key flag");
+        System.out.println("DESCRIPTION");
+        System.out.println("\tmessage\ta message, made of ASCII characters");
+        System.out.println("\tkey\tthe encryption key, made of ASCII characters");
+        System.out.println("\tflag\t0 for the message to be encrypted, 1 to be decrypted");
+    }
+
+    // Point d'entrée du programme
+    public static void main(String[] args) {
+        if (args.length != 3) {
+            System.err.println("Invalid number of arguments.");
+            System.exit(84);
+        }
+
+        if (args[0].equals("-h")) {
+            printHelp();
+            System.exit(0);
+        }
+
+        String message = args[0];
+        String key = args[1];
+        int flag;
+
+        try {
+            flag = Integer.parseInt(args[2]);
+            if (flag != 0 && flag != 1) {
+                throw new IllegalArgumentException();
+            }
+        } catch (Exception e) {
+            System.err.println("Invalid flag. Use 0 for encryption or 1 for decryption.");
+            System.exit(84);
+            return; // Pour s'assurer que le code ne continue pas
+        }
+
+        int[][] keyMatrix = createMatrix(key);
+        System.out.println("Key matrix:");
+        printMatrix(keyMatrix);
+
+        if (flag == 0) { // Chiffrement
+            int[][] messageMatrix = createMatrix(message);
+            int[][] encryptedMatrix = multiplyMatrices(messageMatrix, keyMatrix);
+            System.out.println("\nEncrypted message:");
+            for (int[] row : encryptedMatrix) {
+                for (int value : row) {
+                    System.out.print(value + " ");
+                }
+            }
+            System.out.println();
+        } else { // Décryptage
+            if (keyMatrix.length != 2 || keyMatrix[0].length != 2) {
+                System.err.println("Decryption is only supported for 2x2 key matrices.");
+                System.exit(84);
+            }
+            try {
+                double[][] invertedKey = invertMatrix2x2(keyMatrix);
+                int[][] messageMatrix = createMatrix(message);
+                double[][] decryptedMatrix = multiplyMatrices(messageMatrix, invertedKey);
+                int[][] intDecryptedMatrix = decimalToIntegerMatrix(decryptedMatrix);
+                String decryptedMessage = matrixToAscii(intDecryptedMatrix);
+                System.out.println("\nDecrypted message:");
+                System.out.println(decryptedMessage);
+            } catch (Exception e) {
+                System.err.println("Decryption failed: " + e.getMessage());
+                System.exit(84);
+            }
+        }
+    }
+}
