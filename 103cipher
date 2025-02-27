@@ -5,7 +5,6 @@ import java.util.List;
 
 public class Cipher {
 
-    // Fonction pour convertir le texte en une matrice d'entiers ASCII
     public static List<List<Integer>> stringToAsciiMatrix(String text, int blockSize) {
         List<Integer> asciiValues = new ArrayList<>();
         for (char c : text.toCharArray()) {
@@ -22,7 +21,6 @@ public class Cipher {
         return matrix;
     }
 
-    // Fonction pour convertir la clé en une matrice carrée
     public static List<List<Double>> makeSquareMatrix(List<Integer> key) {
         int keyLength = key.size();
         int size = (int) Math.ceil(Math.sqrt(keyLength));
@@ -41,7 +39,6 @@ public class Cipher {
         return matrix;
     }
 
-    // Fonction pour multiplier deux matrices
     public static List<List<Double>> matrixMultiply(List<List<Double>> A, List<List<Double>> B) {
         int numRowsA = A.size();
         int numColsA = A.get(0).size();
@@ -66,7 +63,6 @@ public class Cipher {
         return result;
     }
 
-    // Fonction pour calculer l'inverse modulaire
     public static double modInverse(double a, double m) {
         for (int x = 1; x < m; x++) {
             if ((a * x) % m == 1) {
@@ -76,7 +72,6 @@ public class Cipher {
         throw new IllegalArgumentException("Pas d'inverse modulaire pour " + a + " modulo " + m);
     }
 
-    // Fonction pour inverser une matrice carrée
     public static List<List<Double>> matrixInverse(List<List<Double>> matrix) {
         int n = matrix.size();
         List<List<Double>> identity = new ArrayList<>();
@@ -133,7 +128,6 @@ public class Cipher {
         return identity;
     }
 
-    // Fonction principale pour gérer l'encryptage et le décryptage
     public static void main(String[] args) {
         if (args.length != 3) {
             System.err.println("USAGE: java Cipher message key flag");
@@ -167,7 +161,7 @@ public class Cipher {
             List<List<Integer>> messageMatrix = stringToAsciiMatrix(message, keyMatrix.get(0).size());
             List<List<Double>> encryptedMatrix = matrixMultiply(messageMatrixToDouble(messageMatrix), keyMatrix);
             printEncryptedMessage(encryptedMatrix);
-            return;  // Terminer le programme après l'affichage du message et de la clé
+            return;
         }
 
 
@@ -177,27 +171,37 @@ public class Cipher {
                 keyAscii.add((int) c);
             }
             List<List<Double>> keyMatrix = makeSquareMatrix(keyAscii);
-            System.out.println("Key matrix:");
-            printKeyMatrix(keyMatrix);
-
             List<List<Integer>> messageMatrix = stringToAsciiMatrix(message, keyMatrix.get(0).size());
             List<List<Double>> encryptedMatrix = matrixMultiply(messageMatrixToDouble(messageMatrix), keyMatrix);
             List<List<Double>> inverseKeyMatrix = matrixInverse(keyMatrix);
+            System.out.println("Key matrix:");
+            printKeyMatrixInverse(inverseKeyMatrix);
+
             List<List<Double>> decryptedMatrix = matrixMultiply(encryptedMatrix, inverseKeyMatrix);
-            System.out.println("Decrypted message:");
+            System.out.println("\nDecrypted message:");
             printDecryptedMessage(decryptedMatrix);
         }
     }
 
-    private static void printKeyMatrix(List<List<Double>> keyMatrix) {
+    private static void printKeyMatrixInverse(List<List<Double>> keyMatrix) {
         for (List<Double> row : keyMatrix) {
             for (Double value : row) {
-                System.out.printf("%d ", value.intValue());
+                if (value == 0.0)
+                    System.out.print("0.0\t");
+                else 
+                    System.out.printf("%.3f\t", value);
             }
             System.out.println();
         }
     }
-    // Convertir une matrice d'entiers en matrice de doubles pour la multiplication
+    private static void printKeyMatrix(List<List<Double>> keyMatrix) {
+        for (List<Double> row : keyMatrix) {
+            for (Double value : row)
+                System.out.printf("%d", value.intValue());
+            System.out.println();
+        }
+    }
+
     private static List<List<Double>> messageMatrixToDouble(List<List<Integer>> messageMatrix) {
         List<List<Double>> result = new ArrayList<>();
         for (List<Integer> row : messageMatrix) {
@@ -210,7 +214,6 @@ public class Cipher {
         return result;
     }
 
-    // Afficher le message crypté
     private static void printEncryptedMessage(List<List<Double>> encryptedMatrix) {
         for (List<Double> row : encryptedMatrix) {
             for (Double value : row) {
@@ -220,13 +223,14 @@ public class Cipher {
         System.out.println();
     }
 
-    // Afficher le message décrypté
     private static void printDecryptedMessage(List<List<Double>> decryptedMatrix) {
         for (List<Double> row : decryptedMatrix) {
             for (Double value : row) {
-                System.out.print((char) value.intValue());
+                int intValue = value.intValue() % 95 + 32;  // Appliquer modulo pour rester dans la plage ASCII imprimable
+                System.out.print((char) intValue);  // Afficher le caractère
             }
         }
         System.out.println();
     }
+
 }
