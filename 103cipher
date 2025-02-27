@@ -197,7 +197,7 @@ public class Cipher {
     private static void printKeyMatrix(List<List<Double>> keyMatrix) {
         for (List<Double> row : keyMatrix) {
             for (Double value : row)
-                System.out.printf("%d", value.intValue());
+                System.out.printf("%d\t", value.intValue());
             System.out.println();
         }
     }
@@ -226,8 +226,8 @@ public class Cipher {
     private static void printDecryptedMessage(List<List<Double>> decryptedMatrix) {
         for (List<Double> row : decryptedMatrix) {
             for (Double value : row) {
-                int intValue = value.intValue() % 95 + 32;  // Appliquer modulo pour rester dans la plage ASCII imprimable
-                System.out.print((char) intValue);  // Afficher le caractère
+                int intValue = value.intValue() % 95 + 32;
+                System.out.print((char) intValue);
             }
         }
         System.out.println();
